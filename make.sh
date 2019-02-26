@@ -45,6 +45,28 @@ build_android() {
   CROSS="$TOOLCHAIN/bin/$CROSS" CFLAGS="--sysroot=$PLATFORM" LDFLAGS="--sysroot=$PLATFORM" ${MAKE} $*
 }
 
+# build webOS lib for only one supported architecture
+build_webos() {
+  TARGARCH="$1"
+  shift
+
+  case "$TARGARCH" in
+    arm)
+      CROSS=arm-linux-gnueabihf-
+      ;;
+    arm64)
+      CROSS=aarch64-linux-gnueabihf-
+      ;;
+
+    *)
+      echo "ERROR! Building for webOS on $1 is not currently supported."
+      exit 1
+      ;;
+  esac
+
+  CROSS="$CROSS" ${MAKE} $*
+}
+
 # build iOS lib for all iDevices, or only specific device
 build_iOS() {
   IOS_SDK=`xcrun --sdk iphoneos --show-sdk-path`
@@ -122,6 +144,7 @@ case "$TARGET" in
   "cygwin-mingw64" ) CROSS=x86_64-w64-mingw32- ${MAKE} $*;;
   "cross-android" ) build_android $*;;
   "cross-android64" ) CROSS=aarch64-linux-gnu- ${MAKE} $*;;	# Linux cross build
+  "cross-webos" ) build_webos $*;;
   "clang" ) CC=clang ${MAKE} $*;;
   "gcc" ) CC=gcc ${MAKE} $*;;
   "ios" ) build_iOS $*;;
